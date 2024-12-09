@@ -5,15 +5,15 @@ import sys
 pygame.init()
 
 # Bildschirmgröße und Farben definieren
-WIDTH, HEIGHT = 1920, 1080
+WIDTH, HEIGHT = 1280, 720  # Flexible Größe, kleiner als Full-HD
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 BLUE = (0, 0, 255)
 GREEN = (0, 255, 0)
 RED = (255, 0, 0)
 
-# Bildschirm erstellen
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
+# Bildschirm erstellen (kein Fullscreen)
+screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.RESIZABLE)
 pygame.display.set_caption("Jump and Run")
 clock = pygame.time.Clock()
 
@@ -27,7 +27,7 @@ can_double_jump = False
 # Gegner-Eigenschaften
 enemies = [
     pygame.Rect(600, HEIGHT - 150, 50, 50),
-    pygame.Rect(1200, HEIGHT - 200, 50, 50)
+    pygame.Rect(900, HEIGHT - 200, 50, 50)
 ]
 
 enemy_speed = 3
@@ -38,16 +38,33 @@ jump_strength = -18
 
 # Plattformen: (bewegende und feste)
 platforms = [
-    pygame.Rect(0, HEIGHT - 100, WIDTH, 50),  # Boden jetzt bildschirmbreit
+    pygame.Rect(0, HEIGHT - 100, WIDTH, 50),  # Boden
     pygame.Rect(400, HEIGHT - 300, 200, 20),
-    pygame.Rect(800, HEIGHT - 400, 300, 20),
-    pygame.Rect(1300, HEIGHT - 500, 150, 20)
+    pygame.Rect(800, HEIGHT - 400, 300, 20)
 ]
 
 moving_platforms = [
-    {"rect": pygame.Rect(600, HEIGHT - 350, 200, 20), "speed": 3, "direction": 1},
-    {"rect": pygame.Rect(1000, HEIGHT - 250, 150, 20), "speed": 4, "direction": -1}
+    {"rect": pygame.Rect(600, HEIGHT - 350, 200, 20), "speed": 3, "direction": 1}
 ]
+
+# UI-Eigenschaften
+font = pygame.font.SysFont("Arial", 30)  # Kleinere Schrift für kompaktere Anzeige
+hearts = 3  # Anzahl der Leben
+start_time = pygame.time.get_ticks()
+
+# Funktionen für die Benutzeroberfläche
+def display_hearts():
+    """Zeigt die Lebensanzeige (Herzen) oben links an."""
+    heart_img = pygame.Surface((30, 30))  # Kleinere Herzen
+    heart_img.fill(RED)
+    for i in range(hearts):
+        screen.blit(heart_img, (10 + i * 40, 10))
+
+def display_timer():
+    """Zeigt den Timer oben rechts an."""
+    elapsed_time = (pygame.time.get_ticks() - start_time) // 1000
+    timer_text = font.render(f"Zeit: {elapsed_time}s", True, BLACK)
+    screen.blit(timer_text, (WIDTH - timer_text.get_width() - 10, 10))
 
 # Spiel-Loop
 running = True
@@ -58,6 +75,9 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        elif event.type == pygame.VIDEORESIZE:  # Bildschirmgröße anpassen
+            WIDTH, HEIGHT = event.w, event.h
+            screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.RESIZABLE)
 
     # Spielerbewegung
     keys = pygame.key.get_pressed()
@@ -112,8 +132,10 @@ while running:
                 enemies.remove(enemy)
                 player_velocity_y = jump_strength  # Spieler springt erneut
             else:
-                print("Spieler getroffen!")
-                running = False
+                hearts -= 1  # Ein Leben verlieren
+                if hearts <= 0:
+                    print("Spieler hat alle Leben verloren!")
+                    running = False
 
     # Spieler am Bildschirmrand halten
     if player.x < 0:
@@ -137,6 +159,10 @@ while running:
 
     # Spieler zeichnen
     pygame.draw.rect(screen, BLUE, player)
+
+    # UI anzeigen
+    display_hearts()
+    display_timer()
 
     # Bildschirm aktualisieren
     pygame.display.flip()

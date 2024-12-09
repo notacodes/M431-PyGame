@@ -17,6 +17,10 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.RESIZABLE)
 pygame.display.set_caption("Jump and Run")
 clock = pygame.time.Clock()
 
+# Hintergrundbild laden
+bg_image = pygame.image.load("kenney_pixel-platformer/BG.jpg")
+bg_image = pygame.transform.scale(bg_image, (WIDTH, HEIGHT))  # An Bildschirmgröße anpassen
+
 # Skalierungsfaktor für Spielfiguren und Plattformen
 scale_factor = WIDTH / 1920
 
@@ -76,7 +80,8 @@ def display_timer():
 # Spiel-Loop
 running = True
 while running:
-    screen.fill(WHITE)
+    # Hintergrund zeichnen
+    screen.blit(bg_image, (0, 0))
 
     # Ereignisse verarbeiten
     for event in pygame.event.get():
@@ -85,10 +90,11 @@ while running:
         elif event.type == pygame.VIDEORESIZE:
             WIDTH, HEIGHT = event.size
             scale_factor = WIDTH / 1920
+            bg_image = pygame.transform.scale(pygame.image.load("kenney_pixel-platformer/BG.jpg"), (WIDTH, HEIGHT))  # Hintergrund neu skalieren
 
             # Spielfiguren und Plattformen neu skalieren
             player.width, player.height = 50 * scale_factor, 50 * scale_factor
-            player_image = pygame.transform.scale(pygame.image.load("spielr.png"), (int(50 * scale_factor), int(50 * scale_factor)))
+            player_image = pygame.transform.scale(pygame.image.load("spieler.png"), (int(50 * scale_factor), int(50 * scale_factor)))
             platforms[0].width = WIDTH
             for p in platforms[1:]:
                 p.width, p.height = p.width * scale_factor, p.height * scale_factor

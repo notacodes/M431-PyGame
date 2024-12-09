@@ -9,7 +9,6 @@ info = pygame.display.Info()
 WIDTH, HEIGHT = info.current_w, info.current_h
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
-BLUE = (0, 0, 255)
 GREEN = (0, 255, 0)
 RED = (255, 0, 0)
 
@@ -22,6 +21,8 @@ clock = pygame.time.Clock()
 scale_factor = WIDTH / 1920
 
 # Spieler und Plattform-Eigenschaften
+player_image = pygame.image.load("spieler.png")  # Lade das Spieler-Bild
+player_image = pygame.transform.scale(player_image, (50, 50))  # Skalieren des Spieler-Bilds
 player = pygame.Rect(100 * scale_factor, HEIGHT - 150 * scale_factor, 50 * scale_factor, 50 * scale_factor)
 player_speed = 7 * scale_factor
 player_velocity_y = 0
@@ -68,6 +69,7 @@ while running:
 
             # Spielfiguren und Plattformen neu skalieren
             player.width, player.height = 50 * scale_factor, 50 * scale_factor
+            player_image = pygame.transform.scale(pygame.image.load("spielr.png"), (int(50 * scale_factor), int(50 * scale_factor)))
             platforms[0].width = WIDTH
             for p in platforms[1:]:
                 p.width, p.height = p.width * scale_factor, p.height * scale_factor
@@ -151,7 +153,7 @@ while running:
         pygame.draw.rect(screen, RED, enemy)
 
     # Spieler zeichnen
-    pygame.draw.rect(screen, BLUE, player)
+    screen.blit(player_image, (player.x, player.y))  # Spielerbild zeichnen
 
     # Bildschirm aktualisieren
     pygame.display.flip()

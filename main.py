@@ -54,6 +54,25 @@ moving_platforms = [
     {"rect": pygame.Rect(1000 * scale_factor, HEIGHT - 250 * scale_factor, 150 * scale_factor, 20 * scale_factor), "speed": 4 * scale_factor, "direction": -1}
 ]
 
+# UI-Eigenschaften
+font = pygame.font.SysFont("Arial", 30)  # Kleinere Schrift für kompaktere Anzeige
+hearts = 3  # Anzahl der Leben
+start_time = pygame.time.get_ticks()
+
+# Funktionen für die Benutzeroberfläche
+def display_hearts():
+    """Zeigt die Lebensanzeige (Herzen) oben links an."""
+    heart_img = pygame.Surface((30, 30))  # Kleinere Herzen
+    heart_img.fill(RED)
+    for i in range(hearts):
+        screen.blit(heart_img, (10 + i * 40, 10))
+
+def display_timer():
+    """Zeigt den Timer oben rechts an."""
+    elapsed_time = (pygame.time.get_ticks() - start_time) // 1000
+    timer_text = font.render(f"Zeit: {elapsed_time}s", True, BLACK)
+    screen.blit(timer_text, (WIDTH - timer_text.get_width() - 10, 10))
+
 # Spiel-Loop
 running = True
 while running:
@@ -129,8 +148,10 @@ while running:
                 enemies.remove(enemy)
                 player_velocity_y = jump_strength  # Spieler springt erneut
             else:
-                print("Spieler getroffen!")
-                running = False
+                hearts -= 1  # Ein Leben verlieren
+                if hearts <= 0:
+                    print("Spieler hat alle Leben verloren!")
+                    running = False
 
     # Spieler am Bildschirmrand halten
     if player.x < 0:
@@ -154,6 +175,10 @@ while running:
 
     # Spieler zeichnen
     screen.blit(player_image, (player.x, player.y))  # Spielerbild zeichnen
+
+    # UI anzeigen
+    display_hearts()
+    display_timer()
 
     # Bildschirm aktualisieren
     pygame.display.flip()

@@ -5,46 +5,53 @@ import sys
 pygame.init()
 
 # Bildschirmgröße und Farben definieren
-WIDTH, HEIGHT = 1280, 720  # Flexible Größe, kleiner als Full-HD
+info = pygame.display.Info()
+WIDTH, HEIGHT = info.current_w, info.current_h
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
-BLUE = (0, 0, 255)
 GREEN = (0, 255, 0)
 RED = (255, 0, 0)
 
-# Bildschirm erstellen (kein Fullscreen)
+# Bildschirm erstellen
 screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.RESIZABLE)
 pygame.display.set_caption("Jump and Run")
 clock = pygame.time.Clock()
 
+# Skalierungsfaktor für Spielfiguren und Plattformen
+scale_factor = WIDTH / 1920
+
 # Spieler und Plattform-Eigenschaften
-player = pygame.Rect(100, HEIGHT - 150, 50, 50)
-player_speed = 7
+player_image = pygame.image.load("spieler.png")  # Lade das Spieler-Bild
+player_image = pygame.transform.scale(player_image, (50, 50))  # Skalieren des Spieler-Bilds
+player = pygame.Rect(100 * scale_factor, HEIGHT - 150 * scale_factor, 50 * scale_factor, 50 * scale_factor)
+player_speed = 7 * scale_factor
 player_velocity_y = 0
 player_on_ground = False
 can_double_jump = False
 
 # Gegner-Eigenschaften
 enemies = [
-    pygame.Rect(600, HEIGHT - 150, 50, 50),
-    pygame.Rect(900, HEIGHT - 200, 50, 50)
+    pygame.Rect(600 * scale_factor, HEIGHT - 150 * scale_factor, 50 * scale_factor, 50 * scale_factor),
+    pygame.Rect(1200 * scale_factor, HEIGHT - 200 * scale_factor, 50 * scale_factor, 50 * scale_factor)
 ]
 
-enemy_speed = 3
+enemy_speed = 3 * scale_factor
 
 # Schwerkraft und Bewegung
-gravity = 0.9
-jump_strength = -18
+gravity = 0.9 * scale_factor
+jump_strength = -18 * scale_factor
 
 # Plattformen: (bewegende und feste)
 platforms = [
-    pygame.Rect(0, HEIGHT - 100, WIDTH, 50),  # Boden
-    pygame.Rect(400, HEIGHT - 300, 200, 20),
-    pygame.Rect(800, HEIGHT - 400, 300, 20)
+    pygame.Rect(0, HEIGHT - 100 * scale_factor, WIDTH, 50 * scale_factor),  # Boden jetzt bildschirmbreit
+    pygame.Rect(400 * scale_factor, HEIGHT - 300 * scale_factor, 200 * scale_factor, 20 * scale_factor),
+    pygame.Rect(800 * scale_factor, HEIGHT - 400 * scale_factor, 300 * scale_factor, 20 * scale_factor),
+    pygame.Rect(1300 * scale_factor, HEIGHT - 500 * scale_factor, 150 * scale_factor, 20 * scale_factor)
 ]
 
 moving_platforms = [
-    {"rect": pygame.Rect(600, HEIGHT - 350, 200, 20), "speed": 3, "direction": 1}
+    {"rect": pygame.Rect(600 * scale_factor, HEIGHT - 350 * scale_factor, 200 * scale_factor, 20 * scale_factor), "speed": 3 * scale_factor, "direction": 1},
+    {"rect": pygame.Rect(1000 * scale_factor, HEIGHT - 250 * scale_factor, 150 * scale_factor, 20 * scale_factor), "speed": 4 * scale_factor, "direction": -1}
 ]
 
 # UI-Eigenschaften
@@ -75,9 +82,18 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        elif event.type == pygame.VIDEORESIZE:  # Bildschirmgröße anpassen
-            WIDTH, HEIGHT = event.w, event.h
-            screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.RESIZABLE)
+        elif event.type == pygame.VIDEORESIZE:
+            WIDTH, HEIGHT = event.size
+            scale_factor = WIDTH / 1920
+
+            # Spielfiguren und Plattformen neu skalieren
+            player.width, player.height = 50 * scale_factor, 50 * scale_factor
+            player_image = pygame.transform.scale(pygame.image.load("spielr.png"), (int(50 * scale_factor), int(50 * scale_factor)))
+            platforms[0].width = WIDTH
+            for p in platforms[1:]:
+                p.width, p.height = p.width * scale_factor, p.height * scale_factor
+            for mp in moving_platforms:
+                mp["rect"].width, mp["rect"].height = mp["rect"].width * scale_factor, mp["rect"].height * scale_factor
 
     # Spielerbewegung
     keys = pygame.key.get_pressed()
@@ -158,7 +174,7 @@ while running:
         pygame.draw.rect(screen, RED, enemy)
 
     # Spieler zeichnen
-    pygame.draw.rect(screen, BLUE, player)
+    screen.blit(player_image, (player.x, player.y))  # Spielerbild zeichnen
 
     # UI anzeigen
     display_hearts()

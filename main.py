@@ -5,68 +5,66 @@ import sys
 pygame.init()
 
 # Bildschirmgröße und Farben definieren
-info = pygame.display.Info()
-WIDTH, HEIGHT = info.current_w, info.current_h
+WIDTH, HEIGHT = 1280, 720
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 GREEN = (0, 255, 0)
 RED = (255, 0, 0)
+BLUE = (0, 0, 255)
 
 # Bildschirm erstellen
-screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.RESIZABLE)
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Jump and Run")
 clock = pygame.time.Clock()
 
 # Hintergrundbild laden
 bg_image = pygame.image.load("kenney_pixel-platformer/BG.jpg")
-bg_image = pygame.transform.scale(bg_image, (WIDTH, HEIGHT))  # An Bildschirmgröße anpassen
-
-# Skalierungsfaktor für Spielfiguren und Plattformen
-scale_factor = WIDTH / 1920
+bg_width = bg_image.get_width()
+bg_image = pygame.transform.scale(bg_image, (bg_width, HEIGHT))
 
 # Spieler und Plattform-Eigenschaften
-player_image = pygame.image.load("spieler.png")  # Lade das Spieler-Bild
-player_image = pygame.transform.scale(player_image, (50, 50))  # Skalieren des Spieler-Bilds
-player = pygame.Rect(100 * scale_factor, HEIGHT - 150 * scale_factor, 50 * scale_factor, 50 * scale_factor)
-player_speed = 7 * scale_factor
+player_image = pygame.image.load("spieler.png")
+player_image = pygame.transform.scale(player_image, (50, 50))
+player = pygame.Rect(100, HEIGHT - 150, 50, 50)
+player_speed = 7
 player_velocity_y = 0
 player_on_ground = False
 can_double_jump = False
 
 # Gegner-Eigenschaften
 enemies = [
-    pygame.Rect(600 * scale_factor, HEIGHT - 150 * scale_factor, 50 * scale_factor, 50 * scale_factor),
-    pygame.Rect(1200 * scale_factor, HEIGHT - 200 * scale_factor, 50 * scale_factor, 50 * scale_factor)
+    pygame.Rect(600, HEIGHT - 150, 50, 50),
+    pygame.Rect(1200, HEIGHT - 200, 50, 50)
 ]
-
-enemy_speed = 3 * scale_factor
+enemy_speed = 3
 
 # Schwerkraft und Bewegung
-gravity = 0.9 * scale_factor
-jump_strength = -18 * scale_factor
+gravity = 0.9
+jump_strength = -18
 
-# Plattformen: (bewegende und feste)
+# Plattformen
 platforms = [
-    pygame.Rect(0, HEIGHT - 100 * scale_factor, WIDTH, 50 * scale_factor),  # Boden jetzt bildschirmbreit
-    pygame.Rect(400 * scale_factor, HEIGHT - 300 * scale_factor, 200 * scale_factor, 20 * scale_factor),
-    pygame.Rect(800 * scale_factor, HEIGHT - 400 * scale_factor, 300 * scale_factor, 20 * scale_factor),
-    pygame.Rect(1300 * scale_factor, HEIGHT - 500 * scale_factor, 150 * scale_factor, 20 * scale_factor)
+    pygame.Rect(0, HEIGHT - 100, bg_width * 3, 50),  # Boden über die gesamte Levelbreite
+    pygame.Rect(400, HEIGHT - 300, 200, 20),
+    pygame.Rect(800, HEIGHT - 400, 300, 20),
+    pygame.Rect(1300, HEIGHT - 500, 150, 20)
 ]
 
-moving_platforms = [
-    {"rect": pygame.Rect(600 * scale_factor, HEIGHT - 350 * scale_factor, 200 * scale_factor, 20 * scale_factor), "speed": 3 * scale_factor, "direction": 1},
-    {"rect": pygame.Rect(1000 * scale_factor, HEIGHT - 250 * scale_factor, 150 * scale_factor, 20 * scale_factor), "speed": 4 * scale_factor, "direction": -1}
-]
+# Zielbereich
+goal = pygame.Rect(bg_width * 3 - 100, HEIGHT - 150, 50, 50)
 
 # UI-Eigenschaften
-font = pygame.font.SysFont("Arial", 30)  # Kleinere Schrift für kompaktere Anzeige
+font = pygame.font.SysFont("Arial", 30)
 hearts = 3  # Anzahl der Leben
 start_time = pygame.time.get_ticks()
 
+# Scroll-Offset
+scroll_x = 0
+
 # Funktionen für die Benutzeroberfläche
 def display_hearts():
-    """Zeigt die Lebensanzeige (Herzen) oben links an."""
-    heart_img = pygame.Surface((30, 30))  # Kleinere Herzen
+    """Zeigt die Lebensanzeige oben links an."""
+    heart_img = pygame.Surface((30, 30))
     heart_img.fill(RED)
     for i in range(hearts):
         screen.blit(heart_img, (10 + i * 40, 10))
@@ -80,26 +78,10 @@ def display_timer():
 # Spiel-Loop
 running = True
 while running:
-    # Hintergrund zeichnen
-    screen.blit(bg_image, (0, 0))
-
     # Ereignisse verarbeiten
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        elif event.type == pygame.VIDEORESIZE:
-            WIDTH, HEIGHT = event.size
-            scale_factor = WIDTH / 1920
-            bg_image = pygame.transform.scale(pygame.image.load("kenney_pixel-platformer/BG.jpg"), (WIDTH, HEIGHT))  # Hintergrund neu skalieren
-
-            # Spielfiguren und Plattformen neu skalieren
-            player.width, player.height = 50 * scale_factor, 50 * scale_factor
-            player_image = pygame.transform.scale(pygame.image.load("spieler.png"), (int(50 * scale_factor), int(50 * scale_factor)))
-            platforms[0].width = WIDTH
-            for p in platforms[1:]:
-                p.width, p.height = p.width * scale_factor, p.height * scale_factor
-            for mp in moving_platforms:
-                mp["rect"].width, mp["rect"].height = mp["rect"].width * scale_factor, mp["rect"].height * scale_factor
 
     # Spielerbewegung
     keys = pygame.key.get_pressed()
@@ -120,7 +102,7 @@ while running:
     player_velocity_y += gravity
     player.y += player_velocity_y
 
-    # Kollisionsprüfung mit festen Plattformen
+    # Kollisionsprüfung mit Plattformen
     player_on_ground = False
     for platform in platforms:
         if player.colliderect(platform) and player_velocity_y > 0:
@@ -128,59 +110,64 @@ while running:
             player_velocity_y = 0
             player_on_ground = True
 
-    # Kollisionsprüfung mit bewegenden Plattformen
-    for moving in moving_platforms:
-        platform = moving["rect"]
-        if player.colliderect(platform) and player_velocity_y > 0:
-            player.y = platform.y - player.height
-            player_velocity_y = 0
-            player_on_ground = True
+    # Spieler am Bildschirmrand halten
+    if player.x < 0:
+        player.x = 0
+    if player.y > HEIGHT:
+        hearts -= 1  # Ein Leben verlieren
+        player.y = HEIGHT - 150
+        player_velocity_y = 0
+        if hearts <= 0:
+            print("Spieler hat alle Leben verloren!")
+            running = False
 
-        # Plattformbewegung
-        platform.x += moving["speed"] * moving["direction"]
-        if platform.left < 0 or platform.right > WIDTH:
-            moving["direction"] *= -1
+    # Scroll-Logik
+    if player.x > WIDTH // 2:
+        scroll_x = player.x - WIDTH // 2
+    else:
+        scroll_x = 0
 
     # Gegnerbewegung
-    for enemy in enemies:
+    for enemy in enemies[:]:
         enemy.x += enemy_speed
-        if enemy.left < 0 or enemy.right > WIDTH:
+        if enemy.left < 0 or enemy.right > bg_width * 3:
             enemy_speed *= -1
 
-    # Kollisionsprüfung mit Gegnern
-    for enemy in enemies[:]:
+        # Kollisionsprüfung mit Spieler
+        enemy_rect = enemy.move(-scroll_x, 0)
         if player.colliderect(enemy):
-            if player_velocity_y > 0:  # Spieler springt auf Gegner
+            if player_velocity_y > 0:  # Spieler springt auf den Gegner
                 enemies.remove(enemy)
                 player_velocity_y = jump_strength  # Spieler springt erneut
-            else:
-                hearts -= 1  # Ein Leben verlieren
+            else:  # Spieler kollidiert seitlich mit Gegner
+                hearts -= 1
                 if hearts <= 0:
                     print("Spieler hat alle Leben verloren!")
                     running = False
 
-    # Spieler am Bildschirmrand halten
-    if player.x < 0:
-        player.x = 0
-    if player.x > WIDTH - player.width:
-        player.x = WIDTH - player.width
-    if player.y > HEIGHT:
-        player.y = HEIGHT - player.height
-        player_velocity_y = 0
+    # Ziel erreichen
+    if player.colliderect(goal):
+        print("Herzlichen Glückwunsch! Du hast das Ziel erreicht!")
+        running = False
+
+    # Hintergrund zeichnen (nahtlos wiederholen)
+    for i in range(3):  # 3 Hintergrundteile für Levelbreite
+        screen.blit(bg_image, ((i * bg_width) - scroll_x, 0))
 
     # Plattformen zeichnen
     for platform in platforms:
-        pygame.draw.rect(screen, GREEN, platform)
-
-    for moving in moving_platforms:
-        pygame.draw.rect(screen, BLACK, moving["rect"])
+        pygame.draw.rect(screen, GREEN, platform.move(-scroll_x, 0))
 
     # Gegner zeichnen
     for enemy in enemies:
-        pygame.draw.rect(screen, RED, enemy)
+        enemy_rect = enemy.move(-scroll_x, 0)
+        pygame.draw.rect(screen, RED, enemy_rect)
+
+    # Zielbereich zeichnen
+    pygame.draw.rect(screen, BLUE, goal.move(-scroll_x, 0))
 
     # Spieler zeichnen
-    screen.blit(player_image, (player.x, player.y))  # Spielerbild zeichnen
+    screen.blit(player_image, (player.x - scroll_x, player.y))
 
     # UI anzeigen
     display_hearts()

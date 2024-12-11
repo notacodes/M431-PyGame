@@ -33,10 +33,13 @@ can_double_jump = False
 
 # Gegner-Eigenschaften
 enemies = [
-    pygame.Rect(600, HEIGHT - 150, 50, 50),
-    pygame.Rect(1200, HEIGHT - 200, 50, 50)
+    pygame.Rect(600, HEIGHT - 120, 50, 50),
+    pygame.Rect(1200, HEIGHT - 120, 50, 50),
+    pygame.Rect(1800, HEIGHT - 120, 50, 50),
+    pygame.Rect(2000, HEIGHT - 120, 50, 50),
+    pygame.Rect(2100, HEIGHT - 120, 50, 50)
 ]
-enemy_speed = 3
+enemy_speed = 2
 
 # Schwerkraft und Bewegung
 gravity = 0.9
@@ -44,7 +47,7 @@ jump_strength = -18
 
 # Plattformen
 platforms = [
-    pygame.Rect(0, HEIGHT - 100, bg_width * 3, 50),  # Boden über die gesamte Levelbreite
+    pygame.Rect(0, HEIGHT - 70, bg_width * 3, 70),  # Boden über die gesamte Levelbreite
     pygame.Rect(400, HEIGHT - 300, 200, 20),
     pygame.Rect(800, HEIGHT - 400, 300, 20),
     pygame.Rect(1300, HEIGHT - 500, 150, 20)
@@ -156,9 +159,9 @@ while running:
 
     # Plattformen zeichnen
     for platform in platforms:
-        pygame.draw.rect(screen, GREEN, platform.move(-scroll_x, 0))
+        pygame.draw.rect(screen, WHITE, platform.move(-scroll_x, 0))
 
-    # Gegner zeichnen
+    #   zeichnen
     for enemy in enemies:
         enemy_rect = enemy.move(-scroll_x, 0)
         pygame.draw.rect(screen, RED, enemy_rect)
